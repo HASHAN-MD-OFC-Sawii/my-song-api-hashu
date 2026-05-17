@@ -1,5 +1,5 @@
 const express = require('express');
-const ytdl = require('ytdl-core');
+const ytdl = require('@distube/ytdl-core'); // අලුත් ස්ථාවර පැකේජය
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -7,30 +7,35 @@ app.get('/api/ytmp3', async (req, res) => {
     const videoUrl = req.query.url;
 
     if (!videoUrl) {
-        return res.status(400).json({ error: "කරුණාකර YouTube URL එකක් ලබාදෙන්න. (?url=...)" });
+        return res.status(400).json({ error: "කරුණාකර YouTube URL එකක් ලබාදෙන්න." });
     }
 
     try {
-        // YouTube වීඩියෝ එකේ විස්තර ලබා ගැනීම
-        const info = await ytdl.getInfo(videoUrl);
+        // YouTube එකෙන් වීඩියෝ විස්තර ගැනීම (cookies හෝ වෙනත් බ්ලොක්වීම් මගහැරීමට)
+        const info = await ytdl.getInfo(videoUrl, {
+            requestOptions: {
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+                }
+            }
+        });
         
-        // හොඳම Audio Format එක තෝරාගැනීම
+        // Audio format එක තෝරාගැනීම
         const format = ytdl.chooseFormat(info.formats, { filter: 'audioonly', quality: 'highestaudio' });
 
         if (format && format.url) {
-            // බොට් එකට කියවිය හැකි පරිදි JSON එකක් හරහා download ලින්ක් එක යැවීම
             return res.json({
                 success: true,
                 title: info.videoDetails.title,
                 downloadUrl: format.url
             });
         } else {
-            return res.status(500).json({ error: "Direct download link එකක් සෑදීමට නොහැකි විය." });
+            return res.status(500).json({ error: "Download link එක සෑදීමට නොහැකි විය." });
         }
 
     } catch (error) {
         console.error(error);
-        return res.status(500).json({ error: "දෝෂයක් සිදු විය: " + error.message });
+        return res.status(500).json({ error: "API Error: " + error.message });
     }
 });
 
