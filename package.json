@@ -1,0 +1,13 @@
+{
+  "name": "my-song-api",
+  "version": "1.0.0",
+  "description": "Simple YouTube MP3 API",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "ytdl-core": "^4.11.5"
+  }
+}
